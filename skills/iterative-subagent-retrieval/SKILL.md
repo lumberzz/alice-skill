@@ -37,7 +37,7 @@ Refinement goals:
 - identify the exact area of change
 - turn a broad request into a specific next task
 
-If needed, run one more narrow exploration pass rather than jumping straight to implementation.
+If needed, run one more narrow exploration pass rather than jumping straight to implementation. For most tasks, keep this to 1-2 exploration passes, not an open-ended analysis loop.
 
 ### Phase 3: Execute
 
@@ -64,7 +64,7 @@ Use this skill when:
 
 ## When not to use
 
-Do not use this pattern for tiny, obvious tasks where a direct pass is cheaper.
+Do not use this pattern for tiny, obvious tasks where a direct pass is cheaper. Use it when narrowing context will materially improve quality, not by default for every task.
 
 ## OpenClaw guidance
 

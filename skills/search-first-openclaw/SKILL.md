@@ -10,8 +10,8 @@ Use this workflow before adding new code, new process, or confident technical co
 ## Core rule
 
 Prefer this order:
-1. Search the workspace
-2. Read the local docs/configs that govern the task
+1. Search source-of-truth files in the workspace
+2. Read the local docs, tests, and configs that govern the task
 3. Check official external docs if the question depends on outside behavior
 4. Only then decide whether to reuse, adapt, or build
 
@@ -20,7 +20,8 @@ Prefer this order:
 ### 1) Search locally first
 
 Start with the current workspace:
-- look for existing files, scripts, docs, and patterns
+- look for source-of-truth files first: implementation, tests, configs, scripts
+- look for existing docs and established patterns
 - find relevant symbols, commands, or configs
 - check whether the same problem is already solved nearby
 
@@ -32,11 +33,11 @@ Questions to answer:
 ### 2) Read governing files
 
 Prefer the files that actually control behavior:
-- project docs
+- implementation files
+- tests and examples that show intended behavior
 - config files
 - task-specific scripts
-- agent/workspace guidance
-- tests that show intended behavior
+- project and workspace docs
 
 Do not jump from search results straight to implementation if the governing file has not been read.
 

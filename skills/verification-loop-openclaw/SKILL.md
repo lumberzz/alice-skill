@@ -13,7 +13,10 @@ Finishing implementation is not the same as finishing the task. Verify the resul
 
 ## Verification ladder
 
-Run only the checks relevant to the task, but do not skip verification entirely.
+Run only the checks relevant to the task, but do not skip verification entirely. Keep verification proportional to the change:
+- small change -> sanity check + diff review may be enough
+- larger code change -> build/test/lint/typecheck as relevant
+- config or workflow change -> validate the behavior that was actually affected
 
 ### 1) Confirm scope
 
@@ -33,7 +36,7 @@ Depending on the task, use the relevant subset:
 - preview/smoke test
 - docs/config validation
 
-If a check cannot be run, say so clearly.
+If a check cannot be run, say so clearly. Do not hide skipped verification behind vague phrases like "should work".
 
 ### 3) Review the diff
 

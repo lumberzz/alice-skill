@@ -121,8 +121,8 @@ Skills provide your tools. When you need one, check its `SKILL.md`. Keep local n
 
 A few rules of thumb for this workspace:
 
-- **Search before building.** Before writing new code, scripts, or conclusions, first check whether the answer already exists in the workspace, local docs, tests, or configs.
-- **Verify before calling work done.** After non-trivial changes, run the relevant checks instead of assuming the result is correct.
+- **Search before building.** Before writing new code, scripts, or confident technical conclusions, first check whether the answer already exists in the workspace, local docs, tests, or configs.
+- **Verify before calling work done.** After non-trivial changes, run the relevant checks instead of assuming the result is correct, and clearly state what could not be verified.
 - **Use staged subagents for complex tasks.** On broad or unfamiliar work, do exploration first, then refine, then execute, then review.
 - **Keep long-term memory curated.** Put raw traces in daily notes; reserve `MEMORY.md` for durable facts, decisions, and preferences.
 - **Keep heartbeat small.** `HEARTBEAT.md` should stay short, active, and current — not a backlog of everything imaginable.
