@@ -6,6 +6,8 @@ const configSchema = z.object({
   LLM_API_URL: z.string().url().optional(),
   LLM_API_KEY: z.string().optional(),
   LLM_MODEL: z.string().default('gpt-4.1-mini'),
+  OPENCLAW_TRANSPORT: z.enum(['local-cli', 'mock-rpc']).default('local-cli'),
+  OPENCLAW_BINARY: z.string().default('openclaw'),
 });
 
 export type AppConfig = z.infer<typeof configSchema>;

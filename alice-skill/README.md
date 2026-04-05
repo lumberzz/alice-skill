@@ -1,11 +1,37 @@
 # Alice Skill
 
-Minimal Alice webhook backend with:
+Alice webhook backend with:
 - thin Alice adapter
 - deterministic router
-- voice formatter
-- mock/real LLM provider layer
-- constrained OpenClaw bridge scaffold
+- voice-first formatter
+- mock or real LLM provider layer
+- constrained OpenClaw bridge
+- real local OpenClaw transport via `openclaw agent --local --json`
+
+## Current architecture
+
+```text
+Alice webhook
+-> Alice adapter
+-> request context + routing
+-> fixed handlers | LLM handler | OpenClaw handler
+-> voice formatter
+-> Alice response
+```
+
+OpenClaw path:
+
+```text
+askOpenClaw
+-> SessionBasedOpenClawBridge
+-> TargetSessionResolver
+-> TaskEnvelopeBuilder
+-> LocalCliSessionInvoker
+-> openclaw agent --local --json
+-> ReplyValidator
+-> ResultNormalizer
+-> voice response
+```
 
 ## Run locally
 
@@ -32,50 +58,69 @@ curl -X POST http://127.0.0.1:3000/alice/webhook \
 
 ## Environment
 
+### HTTP
 - `PORT` — HTTP port
+
+### LLM
 - `LLM_PROVIDER` — `mock` or `openai-compatible`
 - `LLM_API_URL` — compatible chat completions endpoint
 - `LLM_API_KEY` — bearer token for provider
 - `LLM_MODEL` — model name for provider
 
-If real provider settings are incomplete, the app falls back to the mock LLM provider.
+### OpenClaw
+- `OPENCLAW_TRANSPORT` — `local-cli` or `mock-rpc`
+- `OPENCLAW_BINARY` — OpenClaw binary path, default `openclaw`
+
+If real LLM provider settings are incomplete, the app falls back to the mock LLM provider.
 
 ## Current routes
 
-- welcome/help/capabilities
-- askLLM
-- askOpenClaw
-- fallback
+- `welcome`
+- `help`
+- `capabilities`
+- `askLLM`
+- `askOpenClaw`
+- `fallback`
 
-## Current OpenClaw bridge policy
+## OpenClaw bridge policy
 
-Allowed mock task types:
+Allowed task types:
 - `research`
 - `summary`
 - `status`
 
 Unsafe or unknown task types are rejected by policy.
 
-Bridge contract currently includes:
+Bridge contract includes:
 - `sessionId`
 - `userId`
 - `timeoutMs`
 - `outputMode`
 - `safetyPolicy`
 
-The current adapter shape is session-based:
-- `TargetSessionResolver` chooses a dedicated Alice worker session key
-- `TaskEnvelopeBuilder` creates a bounded voice-task message
-- `LocalCliSessionInvoker` uses `openclaw agent --local --json` as the first real local transport
-- `LocalRpcSessionInvoker` remains as a scaffold for a future persistent RPC worker path
-- `ReplyValidator` rejects empty, overly long, or internal-looking replies
+## Transport notes
 
-OpenClaw results are normalized into a voice-safe form with statuses:
+### `local-cli`
+First real transport path.
+Uses:
+
+```bash
+openclaw agent --local --json --session-id <derived> --timeout <seconds> --message <envelope>
+```
+
+This is the recommended current transport because it is already available and supported locally.
+
+### `mock-rpc`
+Keeps the session-oriented RPC scaffolding in place for future work on a persistent worker transport.
+
+## Result handling
+
+OpenClaw results are normalized into voice-safe states:
 - `ok`
 - `timeout`
 - `error`
 
-Timeouts degrade into short spoken fallback text instead of raw errors.
+Timeouts and transport errors degrade into short spoken fallback text instead of raw internal errors.
 
 ## Checks
 
@@ -83,3 +128,17 @@ Timeouts degrade into short spoken fallback text instead of raw errors.
 npm run typecheck
 npm test
 ```
+
+## Smoke test
+
+```bash
+chmod +x scripts/smoke-openclaw.sh
+PORT=3110 ./scripts/smoke-openclaw.sh
+```
+
+## Current limitations
+
+- `local-cli` transport spawns a fresh OpenClaw CLI process per request
+- persistent RPC worker transport is not implemented yet
+- reply extraction from local CLI is intentionally conservative
+- OpenClaw task mapping is still narrow by design

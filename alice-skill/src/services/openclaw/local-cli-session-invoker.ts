@@ -3,6 +3,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import type { OpenClawBridgeResult } from './bridge.js';
 import type { OpenClawSessionInvokeInput, OpenClawSessionInvoker } from './session-invoker.js';
+import { classifyOpenClawCliError, summarizeOpenClawCliError } from './error-mapping.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -23,7 +24,7 @@ export class LocalCliSessionInvoker implements OpenClawSessionInvoker {
     const timeoutSeconds = Math.max(1, Math.ceil(input.timeoutMs / 1000));
 
     try {
-      const { stdout } = await execFileAsync(
+      const { stdout, stderr } = await execFileAsync(
         this.binaryPath,
         [
           'agent',
@@ -51,7 +52,7 @@ export class LocalCliSessionInvoker implements OpenClawSessionInvoker {
           status: 'error',
           source: 'mock-openclaw',
           latencyMs: Date.now() - startedAt,
-          errorMessage: 'openclaw local cli returned no text',
+          errorMessage: summarizeOpenClawCliError(stderr || 'openclaw local cli returned no text'),
         };
       }
 
@@ -64,13 +65,12 @@ export class LocalCliSessionInvoker implements OpenClawSessionInvoker {
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      const timeoutLike = /timed out|ETIMEDOUT|SIGTERM/i.test(message);
 
       return {
-        status: timeoutLike ? 'timeout' : 'error',
+        status: classifyOpenClawCliError(message),
         source: 'mock-openclaw',
         latencyMs: Date.now() - startedAt,
-        errorMessage: message,
+        errorMessage: summarizeOpenClawCliError(message),
       };
     }
   }
