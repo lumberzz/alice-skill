@@ -3,7 +3,8 @@ import type { LlmProvider } from '../services/llm/provider.js';
 import { MockLlmProvider } from '../services/llm/mock-provider.js';
 import { OpenAiCompatibleProvider } from '../services/llm/openai-compatible-provider.js';
 import type { OpenClawBridge } from '../services/openclaw/bridge.js';
-import { MockOpenClawBridge } from '../services/openclaw/bridge.js';
+import { SessionBasedOpenClawBridge } from '../services/openclaw/session-adapter.js';
+import { MockOpenClawSessionInvoker } from '../services/openclaw/session-invoker.js';
 
 export interface AppDependencies {
   config: ReturnType<typeof loadConfig>;
@@ -26,6 +27,6 @@ export function createDependencies(): AppDependencies {
   return {
     config,
     llmProvider,
-    openclawBridge: new MockOpenClawBridge(),
+    openclawBridge: new SessionBasedOpenClawBridge(new MockOpenClawSessionInvoker()),
   };
 }
