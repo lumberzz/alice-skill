@@ -115,8 +115,8 @@ This is the recommended current transport because it is already available and su
 Keeps the session-oriented RPC scaffolding in place for future work on a persistent worker transport.
 
 ### `persistent-rpc`
-Prototype transport for a long-lived local worker process speaking a simple JSONL RPC protocol.
-Current version is a process-backed prototype with a dedicated worker script, meant for latency experiments and architecture validation.
+Long-lived local worker transport using a dedicated worker script that bootstraps a real `AgentSession` and enters `runRpcMode(session)`.
+This path is now suitable for transport and latency experiments, but still depends on local OpenClaw model/provider configuration being available.
 
 ## Result handling
 
@@ -144,6 +144,6 @@ PORT=3110 ./scripts/smoke-openclaw.sh
 ## Current limitations
 
 - `local-cli` transport spawns a fresh OpenClaw CLI process per request
-- `persistent-rpc` is still a prototype worker path, not yet wired to real `runRpcMode(session)`
+- `persistent-rpc` now bootstraps real `runRpcMode(session)`, but still requires local model/provider setup
 - reply extraction from local CLI is intentionally conservative
 - OpenClaw task mapping is still narrow by design
