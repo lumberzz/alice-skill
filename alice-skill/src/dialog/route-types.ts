@@ -1,4 +1,4 @@
-export type RouteType = 'welcome' | 'help' | 'capabilities' | 'askLLM' | 'fallback';
+export type RouteType = 'welcome' | 'help' | 'capabilities' | 'askLLM' | 'askOpenClaw' | 'fallback';
 
 export interface RouteDecision {
   routeType: RouteType;

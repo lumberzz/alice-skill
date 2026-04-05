@@ -11,10 +11,13 @@ import { createEmptySessionState } from '../state/session-types.js';
 import { hasTimeBudget } from './policies.js';
 import type { LlmProvider } from '../services/llm/provider.js';
 import { llmHandler } from '../handlers/llm/llm-handler.js';
+import type { OpenClawBridge } from '../services/openclaw/bridge.js';
+import { openclawHandler } from '../handlers/openclaw/openclaw-handler.js';
 
 export interface OrchestratorDependencies {
   sessionStore: SessionStore;
   llmProvider: LlmProvider;
+  openclawBridge: OpenClawBridge;
 }
 
 export async function orchestrateTurn(
@@ -42,6 +45,9 @@ export async function orchestrateTurn(
       case 'askLLM':
         response = await llmHandler(context, deps.llmProvider, priorState);
         break;
+      case 'askOpenClaw':
+        response = await openclawHandler(context, deps.openclawBridge, 'research');
+        break;
       case 'fallback':
       default:
         response = fallbackHandler();
@@ -53,8 +59,8 @@ export async function orchestrateTurn(
     ...priorState,
     lastIntent: decision.routeType,
     shortSummary:
-      decision.routeType === 'askLLM'
-        ? `Последний LLM-запрос: ${context.utterance.slice(0, 120)}`
+      decision.routeType === 'askLLM' || decision.routeType === 'askOpenClaw'
+        ? `Последний запрос: ${context.utterance.slice(0, 120)}`
         : priorState.shortSummary,
     updatedAt: new Date().toISOString(),
   });

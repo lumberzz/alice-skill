@@ -1,0 +1,15 @@
+import { z } from 'zod';
+
+const configSchema = z.object({
+  PORT: z.coerce.number().default(3000),
+  LLM_PROVIDER: z.enum(['mock', 'openai-compatible']).default('mock'),
+  LLM_API_URL: z.string().url().optional(),
+  LLM_API_KEY: z.string().optional(),
+  LLM_MODEL: z.string().default('gpt-4.1-mini'),
+});
+
+export type AppConfig = z.infer<typeof configSchema>;
+
+export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
+  return configSchema.parse(env);
+}

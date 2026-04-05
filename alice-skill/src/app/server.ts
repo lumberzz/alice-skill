@@ -5,15 +5,16 @@ import { orchestrateTurn } from '../dialog/orchestrator.js';
 import { withRequestContext } from '../middleware/request-context.js';
 import { logTurnEnd, logTurnError, logTurnStart } from '../middleware/logging.js';
 import { MemorySessionStore } from '../state/memory-store.js';
-import { dependencies } from './dependencies.js';
+import { createDependencies } from './dependencies.js';
 
 const app = express();
 const sessionStore = new MemorySessionStore();
+const dependencies = createDependencies();
 
 app.use(express.json({ limit: '1mb' }));
 
 app.get('/health', (_req, res) => {
-  res.json({ ok: true, service: 'alice-skill' });
+  res.json({ ok: true, service: 'alice-skill', llmProvider: dependencies.config.LLM_PROVIDER });
 });
 
 app.post('/alice/webhook', async (req, res) => {
@@ -32,6 +33,7 @@ app.post('/alice/webhook', async (req, res) => {
     const response = await orchestrateTurn(context, {
       sessionStore,
       llmProvider: dependencies.llmProvider,
+      openclawBridge: dependencies.openclawBridge,
     });
 
     logTurnEnd({
@@ -52,7 +54,6 @@ app.post('/alice/webhook', async (req, res) => {
   }
 });
 
-const port = Number(process.env.PORT ?? 3000);
-app.listen(port, () => {
-  console.log(`alice-skill listening on :${port}`);
+app.listen(dependencies.config.PORT, () => {
+  console.log(`alice-skill listening on :${dependencies.config.PORT}`);
 });
