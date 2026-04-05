@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type { LlmProvider } from '../services/llm/provider.js';
 import { MockLlmProvider } from '../services/llm/mock-provider.js';
 import { OpenAiCompatibleProvider } from '../services/llm/openai-compatible-provider.js';
@@ -7,8 +8,8 @@ import { LocalCliSessionInvoker } from '../services/openclaw/local-cli-session-i
 import { LocalRpcSessionInvoker } from '../services/openclaw/local-rpc-session-invoker.js';
 import { MockLocalRpcWorkerManager } from '../services/openclaw/local-rpc-worker-manager.js';
 import { FileAliceSessionRegistry } from '../services/openclaw/alice-session-registry.js';
+import { PersistentLocalRpcWorkerManager } from '../services/openclaw/persistent-local-rpc-worker-manager.js';
 import { loadConfig } from './config.js';
-import path from 'node:path';
 
 export interface AppDependencies {
   config: ReturnType<typeof loadConfig>;
@@ -28,15 +29,21 @@ export function createDependencies(): AppDependencies {
         })
       : new MockLlmProvider();
 
+  const registry = new FileAliceSessionRegistry(path.join(process.cwd(), 'state', 'alice-session-registry.json'));
+
   const openclawBridge =
     config.OPENCLAW_TRANSPORT === 'mock-rpc'
       ? new SessionBasedOpenClawBridge(
-          new LocalRpcSessionInvoker(
-            new MockLocalRpcWorkerManager(),
-            new FileAliceSessionRegistry(path.join(process.cwd(), 'state', 'alice-session-registry.json')),
-          ),
+          new LocalRpcSessionInvoker(new MockLocalRpcWorkerManager(), registry),
         )
-      : new SessionBasedOpenClawBridge(new LocalCliSessionInvoker(config.OPENCLAW_BINARY));
+      : config.OPENCLAW_TRANSPORT === 'persistent-rpc'
+        ? new SessionBasedOpenClawBridge(
+            new LocalRpcSessionInvoker(
+              new PersistentLocalRpcWorkerManager(process.execPath, [config.OPENCLAW_RPC_WORKER_SCRIPT]),
+              registry,
+            ),
+          )
+        : new SessionBasedOpenClawBridge(new LocalCliSessionInvoker(config.OPENCLAW_BINARY));
 
   return {
     config,

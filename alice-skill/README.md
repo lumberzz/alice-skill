@@ -68,8 +68,9 @@ curl -X POST http://127.0.0.1:3000/alice/webhook \
 - `LLM_MODEL` — model name for provider
 
 ### OpenClaw
-- `OPENCLAW_TRANSPORT` — `local-cli` or `mock-rpc`
+- `OPENCLAW_TRANSPORT` — `local-cli`, `mock-rpc`, or `persistent-rpc`
 - `OPENCLAW_BINARY` — OpenClaw binary path, default `openclaw`
+- `OPENCLAW_RPC_WORKER_SCRIPT` — worker script path for `persistent-rpc`
 
 If real LLM provider settings are incomplete, the app falls back to the mock LLM provider.
 
@@ -113,6 +114,10 @@ This is the recommended current transport because it is already available and su
 ### `mock-rpc`
 Keeps the session-oriented RPC scaffolding in place for future work on a persistent worker transport.
 
+### `persistent-rpc`
+Prototype transport for a long-lived local worker process speaking a simple JSONL RPC protocol.
+Current version is a process-backed prototype with a dedicated worker script, meant for latency experiments and architecture validation.
+
 ## Result handling
 
 OpenClaw results are normalized into voice-safe states:
@@ -139,6 +144,6 @@ PORT=3110 ./scripts/smoke-openclaw.sh
 ## Current limitations
 
 - `local-cli` transport spawns a fresh OpenClaw CLI process per request
-- persistent RPC worker transport is not implemented yet
+- `persistent-rpc` is still a prototype worker path, not yet wired to real `runRpcMode(session)`
 - reply extraction from local CLI is intentionally conservative
 - OpenClaw task mapping is still narrow by design
