@@ -5,6 +5,7 @@ import { orchestrateTurn } from '../dialog/orchestrator.js';
 import { withRequestContext } from '../middleware/request-context.js';
 import { logTurnEnd, logTurnError, logTurnStart } from '../middleware/logging.js';
 import { MemorySessionStore } from '../state/memory-store.js';
+import { dependencies } from './dependencies.js';
 
 const app = express();
 const sessionStore = new MemorySessionStore();
@@ -15,7 +16,7 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true, service: 'alice-skill' });
 });
 
-app.post('/alice/webhook', (req, res) => {
+app.post('/alice/webhook', async (req, res) => {
   try {
     const aliceRequest = parseAliceRequest(req.body);
     const turn = toTurnContext(aliceRequest);
@@ -28,7 +29,10 @@ app.post('/alice/webhook', (req, res) => {
       utterance: context.utterance,
     });
 
-    const response = orchestrateTurn(context, sessionStore);
+    const response = await orchestrateTurn(context, {
+      sessionStore,
+      llmProvider: dependencies.llmProvider,
+    });
 
     logTurnEnd({
       requestId: context.requestId,

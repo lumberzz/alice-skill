@@ -9,9 +9,19 @@ import type { RequestContext } from '../middleware/request-context.js';
 import type { SessionStore } from '../state/store.js';
 import { createEmptySessionState } from '../state/session-types.js';
 import { hasTimeBudget } from './policies.js';
+import type { LlmProvider } from '../services/llm/provider.js';
+import { llmHandler } from '../handlers/llm/llm-handler.js';
 
-export function orchestrateTurn(context: RequestContext, sessionStore: SessionStore): SkillResponse {
-  const priorState = sessionStore.get(context.sessionId) ?? createEmptySessionState();
+export interface OrchestratorDependencies {
+  sessionStore: SessionStore;
+  llmProvider: LlmProvider;
+}
+
+export async function orchestrateTurn(
+  context: RequestContext,
+  deps: OrchestratorDependencies,
+): Promise<SkillResponse> {
+  const priorState = deps.sessionStore.get(context.sessionId) ?? createEmptySessionState();
   const decision = routeTurn(context);
 
   let response: SkillResponse;
@@ -29,6 +39,9 @@ export function orchestrateTurn(context: RequestContext, sessionStore: SessionSt
       case 'capabilities':
         response = capabilitiesHandler();
         break;
+      case 'askLLM':
+        response = await llmHandler(context, deps.llmProvider, priorState);
+        break;
       case 'fallback':
       default:
         response = fallbackHandler();
@@ -36,9 +49,13 @@ export function orchestrateTurn(context: RequestContext, sessionStore: SessionSt
     }
   }
 
-  sessionStore.set(context.sessionId, {
+  deps.sessionStore.set(context.sessionId, {
     ...priorState,
     lastIntent: decision.routeType,
+    shortSummary:
+      decision.routeType === 'askLLM'
+        ? `Последний LLM-запрос: ${context.utterance.slice(0, 120)}`
+        : priorState.shortSummary,
     updatedAt: new Date().toISOString(),
   });
 
