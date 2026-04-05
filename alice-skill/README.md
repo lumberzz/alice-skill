@@ -66,8 +66,8 @@ Bridge contract currently includes:
 The current adapter shape is session-based:
 - `TargetSessionResolver` chooses a dedicated Alice worker session key
 - `TaskEnvelopeBuilder` creates a bounded voice-task message
-- `LocalRpcSessionInvoker` uses a local RPC-style worker abstraction
-- `AliceSessionRegistry` maps logical worker keys to local session paths
+- `LocalCliSessionInvoker` uses `openclaw agent --local --json` as the first real local transport
+- `LocalRpcSessionInvoker` remains as a scaffold for a future persistent RPC worker path
 - `ReplyValidator` rejects empty, overly long, or internal-looking replies
 
 OpenClaw results are normalized into a voice-safe form with statuses:
