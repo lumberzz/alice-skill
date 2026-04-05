@@ -56,6 +56,20 @@ Allowed mock task types:
 
 Unsafe or unknown task types are rejected by policy.
 
+Bridge contract currently includes:
+- `sessionId`
+- `userId`
+- `timeoutMs`
+- `outputMode`
+- `safetyPolicy`
+
+OpenClaw results are normalized into a voice-safe form with statuses:
+- `ok`
+- `timeout`
+- `error`
+
+Timeouts degrade into short spoken fallback text instead of raw errors.
+
 ## Checks
 
 ```bash

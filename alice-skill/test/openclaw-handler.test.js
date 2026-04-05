@@ -23,6 +23,7 @@ test('openclaw handler allows safe task types', async () => {
   );
 
   assert.match(response.text, /Mock OpenClaw/i);
+  assert.equal(response.meta?.openclawStatus, 'ok');
 });
 
 test('openclaw handler rejects unsafe task types', async () => {
@@ -45,4 +46,26 @@ test('openclaw handler rejects unsafe task types', async () => {
   );
 
   assert.match(response.text, /не разрешён голосом/i);
+});
+
+test('openclaw handler degrades on tiny time budget', async () => {
+  const response = await openclawHandler(
+    {
+      requestId: 'r8',
+      sessionId: 's8',
+      userId: 'u8',
+      utterance: 'сделай ресерч быстро',
+      isNewSession: false,
+      locale: 'ru-RU',
+      source: 'alice',
+      timestamp: new Date().toISOString(),
+      raw: {},
+      startedAt: Date.now(),
+      deadlineAt: Date.now() + 120,
+    },
+    new MockOpenClawBridge(),
+    'research',
+  );
+
+  assert.equal(response.meta?.openclawStatus, 'timeout');
 });
