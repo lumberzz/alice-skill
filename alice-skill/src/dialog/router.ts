@@ -3,8 +3,9 @@ import type { RouteDecision } from './route-types.js';
 
 const HELP_PATTERNS = [/помощь/i, /что ты умеешь/i, /help/i];
 const CAPABILITIES_PATTERNS = [/возможности/i, /что умеешь/i, /capabilities/i];
-const LLM_PATTERNS = [/объясни/i, /расскажи/i, /кратко/i, /что такое/i, /почему/i];
 const OPENCLAW_PATTERNS = [/ресерч/i, /исследуй/i, /сделай summary/i, /сводку/i, /статус/i];
+const LLM_PATTERNS = [/объясни/i, /расскажи/i, /кратко/i, /что такое/i, /почему/i];
+const SMALLTALK_PATTERNS = [/привет/i, /здравствуй/i, /как дела/i];
 
 export function routeTurn(context: TurnContext): RouteDecision {
   const utterance = context.utterance.trim();
@@ -19,6 +20,10 @@ export function routeTurn(context: TurnContext): RouteDecision {
 
   if (CAPABILITIES_PATTERNS.some((pattern) => pattern.test(utterance))) {
     return { routeType: 'capabilities', confidence: 0.92, reason: 'capabilities-pattern' };
+  }
+
+  if (SMALLTALK_PATTERNS.some((pattern) => pattern.test(utterance))) {
+    return { routeType: 'welcome', confidence: 0.8, reason: 'smalltalk-pattern' };
   }
 
   if (OPENCLAW_PATTERNS.some((pattern) => pattern.test(utterance))) {

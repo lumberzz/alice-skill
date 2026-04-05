@@ -1,0 +1,64 @@
+# Alice Skill
+
+Minimal Alice webhook backend with:
+- thin Alice adapter
+- deterministic router
+- voice formatter
+- mock/real LLM provider layer
+- constrained OpenClaw bridge scaffold
+
+## Run locally
+
+```bash
+npm install
+npm run dev
+```
+
+Default port: `3000`
+
+Health check:
+
+```bash
+curl http://127.0.0.1:3000/health
+```
+
+Sample webhook call:
+
+```bash
+curl -X POST http://127.0.0.1:3000/alice/webhook \
+  -H 'content-type: application/json' \
+  --data @fixtures/alice-new-session.json
+```
+
+## Environment
+
+- `PORT` — HTTP port
+- `LLM_PROVIDER` — `mock` or `openai-compatible`
+- `LLM_API_URL` — compatible chat completions endpoint
+- `LLM_API_KEY` — bearer token for provider
+- `LLM_MODEL` — model name for provider
+
+If real provider settings are incomplete, the app falls back to the mock LLM provider.
+
+## Current routes
+
+- welcome/help/capabilities
+- askLLM
+- askOpenClaw
+- fallback
+
+## Current OpenClaw bridge policy
+
+Allowed mock task types:
+- `research`
+- `summary`
+- `status`
+
+Unsafe or unknown task types are rejected by policy.
+
+## Checks
+
+```bash
+npm run typecheck
+npm test
+```
