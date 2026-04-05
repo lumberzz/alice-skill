@@ -1,0 +1,35 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { routeTurn } from '../src/dialog/router.js';
+
+test('routes new session to welcome', () => {
+  const decision = routeTurn({
+    requestId: 'r1',
+    sessionId: 's1',
+    userId: 'u1',
+    utterance: '',
+    isNewSession: true,
+    locale: 'ru-RU',
+    source: 'alice',
+    timestamp: new Date().toISOString(),
+    raw: {},
+  });
+
+  assert.equal(decision.routeType, 'welcome');
+});
+
+test('routes help utterance to help', () => {
+  const decision = routeTurn({
+    requestId: 'r2',
+    sessionId: 's1',
+    userId: 'u1',
+    utterance: 'помощь',
+    isNewSession: false,
+    locale: 'ru-RU',
+    source: 'alice',
+    timestamp: new Date().toISOString(),
+    raw: {},
+  });
+
+  assert.equal(decision.routeType, 'help');
+});

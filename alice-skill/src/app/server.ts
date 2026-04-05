@@ -2,8 +2,13 @@ import express from 'express';
 import { parseAliceRequest, toTurnContext } from '../alice/mapper.js';
 import { toAliceResponse } from '../alice/response.js';
 import { orchestrateTurn } from '../dialog/orchestrator.js';
+import { withRequestContext } from '../middleware/request-context.js';
+import { logTurnEnd, logTurnError, logTurnStart } from '../middleware/logging.js';
+import { MemorySessionStore } from '../state/memory-store.js';
 
 const app = express();
+const sessionStore = new MemorySessionStore();
+
 app.use(express.json({ limit: '1mb' }));
 
 app.get('/health', (_req, res) => {
@@ -13,21 +18,30 @@ app.get('/health', (_req, res) => {
 app.post('/alice/webhook', (req, res) => {
   try {
     const aliceRequest = parseAliceRequest(req.body);
-    const context = toTurnContext(aliceRequest);
-    const response = orchestrateTurn(context);
+    const turn = toTurnContext(aliceRequest);
+    const context = withRequestContext(turn);
 
-    console.log(JSON.stringify({
-      event: 'alice_turn',
+    logTurnStart({
       requestId: context.requestId,
       sessionId: context.sessionId,
       userId: context.userId,
       utterance: context.utterance,
+    });
+
+    const response = orchestrateTurn(context, sessionStore);
+
+    logTurnEnd({
+      requestId: context.requestId,
       route: response.meta?.route,
-    }));
+      latencyMs: Date.now() - context.startedAt,
+    });
 
     res.json(toAliceResponse(aliceRequest, response));
   } catch (error) {
-    console.error('alice_webhook_error', error);
+    logTurnError({
+      error: error instanceof Error ? error.message : String(error),
+    });
+
     res.status(400).json({
       error: 'invalid_request',
     });

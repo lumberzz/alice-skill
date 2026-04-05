@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "session": {
+    "new": true,
+    "session_id": "fixture-session",
+    "user_id": "fixture-user"
+  },
+  "request": {
+    "command": "",
+    "original_utterance": ""
+  },
+  "meta": {
+    "locale": "ru-RU"
+  }
+}

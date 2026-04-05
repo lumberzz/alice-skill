@@ -8,7 +8,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/app/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test"
+    "test": "node --import tsx --test test/*.test.js"
   },
   "dependencies": {
     "express": "^4.21.2",
