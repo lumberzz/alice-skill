@@ -5,6 +5,7 @@ import { PersistentLocalRpcWorkerManager } from '../src/services/openclaw/persis
 
 test('persistent rpc worker manager can start worker and exchange commands', async () => {
   const workerScript = path.join(process.cwd(), 'scripts', 'openclaw-rpc-worker.js');
+  process.env.OPENROUTER_MODEL = 'openai/gpt-5.4-mini';
   const manager = new PersistentLocalRpcWorkerManager(process.execPath, [workerScript]);
   const client = await manager.ensureStarted();
   const response = await client.send({ id: 't1', type: 'get_state' });

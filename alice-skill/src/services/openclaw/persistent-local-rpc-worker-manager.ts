@@ -4,6 +4,48 @@ import readline from 'node:readline';
 import type { LocalRpcWorkerManager, RpcClient } from './local-rpc-worker-manager.js';
 import type { RpcCommand, RpcEvent, RpcResponse } from './rpc-types.js';
 
+function extractAssistantTextFromEvent(event: RpcEvent): string {
+  const topLevelContent = event.message?.role === 'assistant' ? event.message.content ?? [] : [];
+  const partialContent = (event as RpcEvent & {
+    assistantMessageEvent?: {
+      partial?: {
+        role?: string;
+        content?: Array<{ type?: string; text?: string }>;
+      };
+    };
+  }).assistantMessageEvent?.partial?.role === 'assistant'
+    ? ((event as RpcEvent & {
+        assistantMessageEvent?: {
+          partial?: {
+            role?: string;
+            content?: Array<{ type?: string; text?: string }>;
+          };
+        };
+      }).assistantMessageEvent?.partial?.content ?? [])
+    : [];
+
+  const content = partialContent.length > 0 ? partialContent : topLevelContent;
+  return content
+    .filter((item) => item.type === 'text' && typeof item.text === 'string')
+    .map((item) => item.text)
+    .join(' ')
+    .trim();
+}
+
+function isAssistantFinalizingEvent(event: RpcEvent): boolean {
+  const assistantRelated = event.message?.role === 'assistant' || (event as RpcEvent & { assistantMessageEvent?: { partial?: { role?: string } } }).assistantMessageEvent?.partial?.role === 'assistant';
+  return assistantRelated && (event.type === 'message_end' || event.type === 'turn_end' || event.type === 'agent_end');
+}
+
+interface PendingCollection {
+  events: RpcEvent[];
+  response?: RpcResponse;
+  resolve: (value: { response: RpcResponse; events: RpcEvent[] }) => void;
+  done: boolean;
+  latestAssistantText: string;
+  timer?: NodeJS.Timeout;
+}
+
 export class PersistentLocalRpcWorkerManager implements LocalRpcWorkerManager {
   private child: ChildProcessByStdio<Writable, Readable, null> | null = null;
   private client: PersistentRpcClient | null = null;
@@ -21,6 +63,7 @@ export class PersistentLocalRpcWorkerManager implements LocalRpcWorkerManager {
     const child = spawn(this.command, this.args, {
       cwd: process.cwd(),
       stdio: ['pipe', 'pipe', 'inherit'],
+      env: process.env,
     });
 
     this.child = child;
@@ -37,12 +80,8 @@ export class PersistentLocalRpcWorkerManager implements LocalRpcWorkerManager {
 
 class PersistentRpcClient implements RpcClient {
   private readonly pendingResponses = new Map<string, (response: RpcResponse) => void>();
-  private readonly pendingCollections = new Map<string, {
-    events: RpcEvent[];
-    response?: RpcResponse;
-    resolve: (value: { response: RpcResponse; events: RpcEvent[] }) => void;
-    timer?: NodeJS.Timeout;
-  }>();
+  private readonly pendingCollections = new Map<string, PendingCollection>();
+  private readonly traceEnabled = process.env.OPENCLAW_RPC_TRACE === '1';
 
   constructor(private readonly child: ChildProcessByStdio<Writable, Readable, null>) {
     const rl = readline.createInterface({ input: child.stdout, crlfDelay: Infinity });
@@ -58,27 +97,44 @@ class PersistentRpcClient implements RpcClient {
 
   async sendAndCollect(command: RpcCommand, timeoutMs: number): Promise<{ response: RpcResponse; events: RpcEvent[] }> {
     return new Promise((resolve) => {
-      this.pendingCollections.set(command.id, {
+      const entry: PendingCollection = {
         events: [],
         resolve,
-      });
-
-      this.child.stdin.write(`${JSON.stringify(command)}\n`);
-
-      setTimeout(() => {
+        done: false,
+        latestAssistantText: '',
+      };
+      entry.timer = setTimeout(() => {
         const pending = this.pendingCollections.get(command.id);
-        if (!pending || !pending.response) {
+        if (!pending || pending.done || !pending.response) {
           return;
         }
 
+        pending.done = true;
         this.pendingCollections.delete(command.id);
+
+        if (pending.latestAssistantText) {
+          pending.events.push({
+            type: 'turn_end',
+            message: {
+              role: 'assistant',
+              content: [{ type: 'text', text: pending.latestAssistantText }],
+            },
+          });
+        }
+
         pending.resolve({ response: pending.response, events: pending.events });
-      }, Math.min(timeoutMs, 50));
+      }, timeoutMs);
+
+      this.pendingCollections.set(command.id, entry);
+      this.child.stdin.write(`${JSON.stringify(command)}\n`);
     });
   }
 
   private handleLine(line: string): void {
     if (!line.trim()) return;
+    if (this.traceEnabled) {
+      console.log(JSON.stringify({ event: 'openclaw_rpc_line', line }));
+    }
     const parsed = JSON.parse(line) as RpcResponse | RpcEvent;
 
     if (parsed.type === 'response') {
@@ -98,8 +154,23 @@ class PersistentRpcClient implements RpcClient {
     }
 
     const event = parsed as RpcEvent;
-    for (const collection of this.pendingCollections.values()) {
+    const assistantText = extractAssistantTextFromEvent(event);
+
+    for (const [commandId, collection] of this.pendingCollections.entries()) {
       collection.events.push(event);
+
+      if (assistantText) {
+        collection.latestAssistantText = assistantText;
+      }
+
+      if (!collection.done && collection.response && isAssistantFinalizingEvent(event) && collection.latestAssistantText) {
+        collection.done = true;
+        if (collection.timer) {
+          clearTimeout(collection.timer);
+        }
+        this.pendingCollections.delete(commandId);
+        collection.resolve({ response: collection.response, events: collection.events });
+      }
     }
   }
 }

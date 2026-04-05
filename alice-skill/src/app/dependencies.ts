@@ -17,6 +17,20 @@ export interface AppDependencies {
   openclawBridge: OpenClawBridge;
 }
 
+function buildOpenClawEnv(config: ReturnType<typeof loadConfig>): NodeJS.ProcessEnv {
+  const extraEnv: NodeJS.ProcessEnv = {};
+
+  if (process.env.OPENROUTER_API_KEY) {
+    extraEnv.OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+  }
+
+  if (config.OPENROUTER_MODEL) {
+    extraEnv.OPENROUTER_MODEL = config.OPENROUTER_MODEL;
+  }
+
+  return extraEnv;
+}
+
 export function createDependencies(): AppDependencies {
   const config = loadConfig();
 
@@ -30,6 +44,7 @@ export function createDependencies(): AppDependencies {
       : new MockLlmProvider();
 
   const registry = new FileAliceSessionRegistry(path.join(process.cwd(), 'state', 'alice-session-registry.json'));
+  const openclawEnv = buildOpenClawEnv(config);
 
   const openclawBridge =
     config.OPENCLAW_TRANSPORT === 'mock-rpc'
@@ -43,7 +58,12 @@ export function createDependencies(): AppDependencies {
               registry,
             ),
           )
-        : new SessionBasedOpenClawBridge(new LocalCliSessionInvoker(config.OPENCLAW_BINARY));
+        : new SessionBasedOpenClawBridge(
+            new LocalCliSessionInvoker({
+              binaryPath: config.OPENCLAW_BINARY,
+              extraEnv: openclawEnv,
+            }),
+          );
 
   return {
     config,

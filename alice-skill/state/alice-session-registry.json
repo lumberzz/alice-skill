@@ -1,4 +1,6 @@
 {
   "alice-worker:research:user-84": "/tmp/6dc40fde-ce30-4e2c-804e-1c6d30586e4e.jsonl",
-  "alice-worker:research:smoke-user": "/tmp/c83610b2-bd83-43c7-926a-ca1a680469ed.jsonl"
+  "alice-worker:research:smoke-user": "/tmp/c83610b2-bd83-43c7-926a-ca1a680469ed.jsonl",
+  "alice-worker:research:budget-user": "/home/lumber/.pi/agent/sessions/--home-lumber-.openclaw-workspace-alice-skill--/2026-04-05T19-58-19-895Z_0a51b1c4-60f1-4f04-ae02-e908997cfe71.jsonl",
+  "alice-worker:research:rpc-user": "/home/lumber/.pi/agent/sessions/--home-lumber-.openclaw-workspace-alice-skill--/2026-04-05T20-00-54-309Z_ab5bf63f-9c53-4a5f-8041-8bfc2c5770d4.jsonl"
 }

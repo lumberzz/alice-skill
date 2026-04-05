@@ -15,8 +15,19 @@ interface OpenClawAgentJsonResult {
   text?: string;
 }
 
+interface LocalCliSessionInvokerOptions {
+  binaryPath?: string;
+  extraEnv?: NodeJS.ProcessEnv;
+}
+
 export class LocalCliSessionInvoker implements OpenClawSessionInvoker {
-  constructor(private readonly binaryPath = 'openclaw') {}
+  private readonly binaryPath: string;
+  private readonly extraEnv?: NodeJS.ProcessEnv;
+
+  constructor(options: LocalCliSessionInvokerOptions = {}) {
+    this.binaryPath = options.binaryPath ?? 'openclaw';
+    this.extraEnv = options.extraEnv;
+  }
 
   async invoke(input: OpenClawSessionInvokeInput): Promise<OpenClawBridgeResult> {
     const startedAt = Date.now();
@@ -41,6 +52,10 @@ export class LocalCliSessionInvoker implements OpenClawSessionInvoker {
           cwd: process.cwd(),
           timeout: input.timeoutMs,
           maxBuffer: 1024 * 1024,
+          env: {
+            ...process.env,
+            ...this.extraEnv,
+          },
         },
       );
 

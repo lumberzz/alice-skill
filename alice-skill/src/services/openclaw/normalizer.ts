@@ -27,9 +27,16 @@ export function normalizeOpenClawResult(result: OpenClawBridgeResult): Normalize
     };
   }
 
-  const briefText = (result.text ?? 'OpenClaw не вернул содержательный ответ.')
+  const cleanedText = (result.text ?? 'OpenClaw не вернул содержательный ответ.')
     .replace(/\s+/g, ' ')
     .trim();
+
+  const sentenceSplit = cleanedText.split(/(?<=[.!?])\s+/).filter(Boolean);
+  const briefText = sentenceSplit.length > 2
+    ? sentenceSplit.slice(0, 2).join(' ')
+    : cleanedText.length > 240
+      ? `${cleanedText.slice(0, 237).trim()}…`
+      : cleanedText;
 
   const detailsText = result.details?.replace(/\s+/g, ' ').trim();
 

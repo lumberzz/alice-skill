@@ -6,6 +6,9 @@ import { withRequestContext } from '../middleware/request-context.js';
 import { logTurnEnd, logTurnError, logTurnStart } from '../middleware/logging.js';
 import { MemorySessionStore } from '../state/memory-store.js';
 import { createDependencies } from './dependencies.js';
+import { loadDotEnv } from './env.js';
+
+loadDotEnv();
 
 const app = express();
 const sessionStore = new MemorySessionStore();
@@ -14,7 +17,12 @@ const dependencies = createDependencies();
 app.use(express.json({ limit: '1mb' }));
 
 app.get('/health', (_req, res) => {
-  res.json({ ok: true, service: 'alice-skill', llmProvider: dependencies.config.LLM_PROVIDER });
+  res.json({
+    ok: true,
+    service: 'alice-skill',
+    llmProvider: dependencies.config.LLM_PROVIDER,
+    openclawTransport: dependencies.config.OPENCLAW_TRANSPORT,
+  });
 });
 
 app.post('/alice/webhook', async (req, res) => {

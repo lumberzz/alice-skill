@@ -16,13 +16,24 @@ export async function openclawHandler(
     };
   }
 
+  const configuredTimeoutMs = Number(process.env.OPENCLAW_TEST_TIMEOUT_MS || 0);
   const remainingBudgetMs = context.deadlineAt - Date.now() - 150;
+  const effectiveTimeoutMs = configuredTimeoutMs > 0 ? configuredTimeoutMs : remainingBudgetMs;
 
-  if (remainingBudgetMs < 100) {
+  console.log(JSON.stringify({
+    event: 'openclaw_budget',
+    sessionId: context.sessionId,
+    taskType,
+    remainingBudgetMs,
+    configuredTimeoutMs: configuredTimeoutMs || null,
+    effectiveTimeoutMs,
+  }));
+
+  if (effectiveTimeoutMs < 100) {
     const normalized = normalizeOpenClawResult({
       status: 'timeout',
       source: 'mock-openclaw',
-      latencyMs: Math.max(0, remainingBudgetMs),
+      latencyMs: Math.max(0, effectiveTimeoutMs),
       errorMessage: 'insufficient remaining budget',
     });
 
@@ -37,15 +48,13 @@ export async function openclawHandler(
     };
   }
 
-  const timeoutMs = remainingBudgetMs;
-
   const result = await withTimeout(
     bridge.run({
       taskType,
       utterance: context.utterance,
       sessionId: context.sessionId,
       userId: context.userId,
-      timeoutMs,
+      timeoutMs: effectiveTimeoutMs,
       outputMode: 'voice-brief',
       safetyPolicy: {
         allowExternalActions: false,
@@ -53,16 +62,35 @@ export async function openclawHandler(
         allowShell: false,
       },
     }),
-    timeoutMs,
+    effectiveTimeoutMs,
     async () => ({
       status: 'timeout' as const,
       source: 'mock-openclaw' as const,
-      latencyMs: timeoutMs,
+      latencyMs: effectiveTimeoutMs,
       errorMessage: 'bridge timeout',
     }),
   );
 
+  console.log(JSON.stringify({
+    event: 'openclaw_bridge_result',
+    sessionId: context.sessionId,
+    taskType,
+    status: result.status,
+    latencyMs: result.latencyMs,
+    hasText: Boolean(result.text),
+    errorMessage: result.errorMessage ?? null,
+  }));
+
   const normalized = normalizeOpenClawResult(result);
+
+  console.log(JSON.stringify({
+    event: 'openclaw_normalized_result',
+    sessionId: context.sessionId,
+    taskType,
+    status: normalized.status,
+    latencyMs: normalized.latencyMs,
+    briefTextPreview: normalized.briefText.slice(0, 120),
+  }));
 
   return {
     text: normalized.briefText,
