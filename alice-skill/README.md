@@ -10,19 +10,23 @@ Alice webhook backend with:
 
 ## Deployment recommendation
 
-For the **first real Alice end-to-end test**, the recommended path is:
-
+Originally, the first preferred path was:
 - run locally
 - expose with `cloudflared`
 - use that public URL in Yandex Dialogs
 
-Why not Render Free as the main path right now:
+In the current network environment, tunnel connectivity is blocked or unreliable, so a **Render demo deployment** is now the practical fallback path.
+
+Why Render Free is acceptable only as a demo path:
 - it spins down after 15 minutes of idle time
 - cold starts are a bad fit for Alice voice webhook UX
 - the current project prefers a local long-lived RPC worker path
 - local filesystem on free web services is ephemeral
 
-Render is still possible later for a stateless or paid always-on deployment, but it is not the best first integration path for the current implementation.
+For current rollout status:
+- local tunnel path remains documented
+- Render demo path is now prepared for deployment
+- see `RENDER_DEPLOY.md` for the hosted demo setup
 
 ## Current architecture
 
@@ -184,7 +188,7 @@ chmod +x scripts/provider-check.sh
 
 ## Local public webhook via cloudflared
 
-This is the recommended path for the first real Alice test.
+This remains the preferred local-first path in principle, but in the current network environment it has not been reliable enough for rollout.
 
 For real Alice tests without a permanent server, run the app locally and expose it via cloudflared.
 
@@ -227,4 +231,4 @@ curl https://random-name.trycloudflare.com/health
 - runtime may still respond with a fallback registry-backed OpenRouter model instead of the requested preferred model
 - `qwen/qwen3.6-plus:free` is not present in the current registry
 - task mapping is intentionally narrow for safety
-- current preferred OpenClaw path is local-first; hosted deployment needs a deliberate transport decision
+- current preferred OpenClaw path is local-first; hosted deployment currently uses a demo-safe stateless profile

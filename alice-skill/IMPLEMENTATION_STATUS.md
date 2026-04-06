@@ -17,9 +17,11 @@
 3. Clean up transient diagnostics and create milestone commits.
 
 ## Deployment direction decided
-- First real external Alice test should use local run + cloudflared.
-- Render Free is not the preferred primary path because idle spin-down and cold starts are a poor fit for Alice webhook UX.
-- Hosted deployment can be revisited later after choosing a production transport strategy.
+- First choice in principle was local run + cloudflared.
+- In the current network environment, tunnel connectivity is blocked or unreliable.
+- Therefore the active rollout path is now a Render-hosted demo deployment.
+- Render Free is still only a demo path because idle spin-down and cold starts are a poor fit for Alice webhook UX.
+- Hosted production deployment still needs a deliberate transport strategy.
 
 ## Definition of first testable working version
 - Alice webhook starts locally.
