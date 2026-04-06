@@ -8,16 +8,37 @@ export async function llmHandler(
   provider: LlmProvider,
   sessionState: SessionState,
 ): Promise<SkillResponse> {
-  const result = await provider.generateSpokenAnswer({
-    utterance: context.utterance,
-    shortSummary: sessionState.shortSummary,
-    locale: context.locale,
-  });
+  try {
+    const result = await provider.generateSpokenAnswer({
+      utterance: context.utterance,
+      shortSummary: sessionState.shortSummary,
+      locale: context.locale,
+    });
 
-  return {
-    text: result.text,
-    meta: {
-      llmProvider: result.provider,
-    },
-  };
+    return {
+      text: result.text,
+      meta: {
+        llmProvider: result.provider,
+        llmStatus: 'ok',
+      },
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+
+    console.error(JSON.stringify({
+      event: 'llm_handler_error',
+      sessionId: context.sessionId,
+      requestId: context.requestId,
+      message,
+    }));
+
+    return {
+      text: 'Сейчас не получилось получить ответ от языковой модели. Попробуй переформулировать запрос или повторить чуть позже.',
+      meta: {
+        llmProvider: 'error',
+        llmStatus: 'error',
+        llmError: message,
+      },
+    };
+  }
 }

@@ -34,11 +34,15 @@ function buildOpenClawEnv(config: ReturnType<typeof loadConfig>): NodeJS.Process
 export function createDependencies(): AppDependencies {
   const config = loadConfig();
 
+  const llmApiUrl =
+    config.LLM_API_URL || (process.env.OPENROUTER_API_KEY ? 'https://openrouter.ai/api/v1/chat/completions' : undefined);
+  const llmApiKey = config.LLM_API_KEY || process.env.OPENROUTER_API_KEY;
+
   const llmProvider: LlmProvider =
-    config.LLM_PROVIDER === 'openai-compatible' && config.LLM_API_URL && config.LLM_API_KEY
+    config.LLM_PROVIDER === 'openai-compatible' && llmApiUrl && llmApiKey
       ? new OpenAiCompatibleProvider({
-          apiUrl: config.LLM_API_URL,
-          apiKey: config.LLM_API_KEY,
+          apiUrl: llmApiUrl,
+          apiKey: llmApiKey,
           model: config.LLM_MODEL,
         })
       : new MockLlmProvider();

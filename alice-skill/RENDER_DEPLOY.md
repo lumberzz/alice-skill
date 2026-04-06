@@ -71,6 +71,24 @@ Set these in Render:
 
 You can also copy from `.env.render-demo.example`.
 
+### Enabling a real LLM later
+When you want the hosted skill to answer through a real LLM, switch to:
+
+- `LLM_PROVIDER=openai-compatible`
+- `LLM_MODEL=openai/gpt-5.4-mini` (or another compatible model)
+
+And provide one of these auth/config paths:
+
+1. explicit compatible endpoint:
+   - `LLM_API_URL=<compatible chat completions endpoint>`
+   - `LLM_API_KEY=<token>`
+
+2. OpenRouter shortcut:
+   - `OPENROUTER_API_KEY=<token>`
+
+If `OPENROUTER_API_KEY` is present and `LLM_API_URL` is empty, the app will automatically use:
+- `https://openrouter.ai/api/v1/chat/completions`
+
 ## Expected behavior after deploy
 ### Health check
 Render service root health endpoint:
