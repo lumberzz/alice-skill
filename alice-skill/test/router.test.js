@@ -33,3 +33,19 @@ test('routes help utterance to help', () => {
 
   assert.equal(decision.routeType, 'help');
 });
+
+test('routes explanatory prompt to LLM', () => {
+  const decision = routeTurn({
+    requestId: 'r3',
+    sessionId: 's1',
+    userId: 'u1',
+    utterance: 'объясни простыми словами что такое webhook',
+    isNewSession: false,
+    locale: 'ru-RU',
+    source: 'alice',
+    timestamp: new Date().toISOString(),
+    raw: {},
+  });
+
+  assert.equal(decision.routeType, 'askLLM');
+});

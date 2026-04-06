@@ -121,6 +121,18 @@ https://<your-render-service>.onrender.com/alice/webhook
 3. Confirm fixed responses work
 4. Only then point Yandex Dialogs to the webhook
 
+### LLM smoke after enabling real provider
+After switching Render env to a real LLM, run:
+
+```bash
+cd /home/lumber/.openclaw/workspace/alice-skill
+./scripts/render-llm-smoke.sh https://<your-render-service>.onrender.com
+```
+
+This checks:
+- service health
+- LLM-routed webhook response for a natural explanatory prompt
+
 ## Example manual webhook test
 ```bash
 curl -X POST https://<your-render-service>.onrender.com/alice/webhook \

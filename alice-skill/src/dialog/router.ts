@@ -4,7 +4,18 @@ import type { RouteDecision } from './route-types.js';
 const HELP_PATTERNS = [/помощь/i, /что ты умеешь/i, /help/i];
 const CAPABILITIES_PATTERNS = [/возможности/i, /что умеешь/i, /capabilities/i];
 const OPENCLAW_PATTERNS = [/ресерч/i, /исследуй/i, /сделай summary/i, /сводку/i, /статус/i];
-const LLM_PATTERNS = [/объясни/i, /расскажи/i, /кратко/i, /что такое/i, /почему/i];
+const LLM_PATTERNS = [
+  /объясни/i,
+  /расскажи/i,
+  /кратко/i,
+  /что такое/i,
+  /почему/i,
+  /кто такой/i,
+  /кто такая/i,
+  /как работает/i,
+  /что значит/i,
+  /в двух словах/i,
+];
 const SMALLTALK_PATTERNS = [/привет/i, /здравствуй/i, /как дела/i];
 
 export function routeTurn(context: TurnContext): RouteDecision {
