@@ -15,6 +15,12 @@ export interface AppDependencies {
   config: ReturnType<typeof loadConfig>;
   llmProvider: LlmProvider;
   openclawBridge: OpenClawBridge;
+  llmStatus: {
+    mode: 'mock' | 'configured' | 'misconfigured';
+    apiUrl?: string;
+    model: string;
+    timeoutMs: number;
+  };
 }
 
 function buildOpenClawEnv(config: ReturnType<typeof loadConfig>): NodeJS.ProcessEnv {
@@ -44,8 +50,21 @@ export function createDependencies(): AppDependencies {
           apiUrl: llmApiUrl,
           apiKey: llmApiKey,
           model: config.LLM_MODEL,
+          timeoutMs: config.LLM_TIMEOUT_MS,
         })
       : new MockLlmProvider();
+
+  const llmStatus = {
+    mode:
+      config.LLM_PROVIDER === 'mock'
+        ? 'mock'
+        : llmApiUrl && llmApiKey
+          ? 'configured'
+          : 'misconfigured',
+    apiUrl: llmApiUrl,
+    model: config.LLM_MODEL,
+    timeoutMs: config.LLM_TIMEOUT_MS,
+  } as const;
 
   const registry = new FileAliceSessionRegistry(path.join(process.cwd(), 'state', 'alice-session-registry.json'));
   const openclawEnv = buildOpenClawEnv(config);
@@ -73,5 +92,6 @@ export function createDependencies(): AppDependencies {
     config,
     llmProvider,
     openclawBridge,
+    llmStatus,
   };
 }

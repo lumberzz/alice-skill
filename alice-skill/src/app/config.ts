@@ -7,6 +7,7 @@ const configSchema = z.object({
   LLM_API_URL: z.string().url().optional(),
   LLM_API_KEY: z.string().optional(),
   LLM_MODEL: z.string().default('gpt-4.1-mini'),
+  LLM_TIMEOUT_MS: z.coerce.number().default(6000),
   OPENCLAW_TRANSPORT: z.enum(['local-cli', 'mock-rpc', 'persistent-rpc']).default('persistent-rpc'),
   OPENCLAW_BINARY: z.string().default('openclaw'),
   OPENCLAW_RPC_WORKER_SCRIPT: z.string().default(path.join(process.cwd(), 'scripts', 'openclaw-rpc-worker.js')),

@@ -17,10 +17,19 @@ const dependencies = createDependencies();
 app.use(express.json({ limit: '1mb' }));
 
 app.get('/health', (_req, res) => {
+  const llmReady =
+    dependencies.llmStatus.mode === 'mock'
+      ? true
+      : dependencies.llmStatus.mode === 'configured';
+
   res.json({
     ok: true,
     service: 'alice-skill',
     llmProvider: dependencies.config.LLM_PROVIDER,
+    llmMode: dependencies.llmStatus.mode,
+    llmModel: dependencies.llmStatus.model,
+    llmTimeoutMs: dependencies.llmStatus.timeoutMs,
+    llmReady,
     openclawTransport: dependencies.config.OPENCLAW_TRANSPORT,
   });
 });
