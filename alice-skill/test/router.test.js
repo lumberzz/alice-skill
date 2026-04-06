@@ -49,3 +49,35 @@ test('routes explanatory prompt to LLM', () => {
 
   assert.equal(decision.routeType, 'askLLM');
 });
+
+test('routes natural question to LLM by heuristic', () => {
+  const decision = routeTurn({
+    requestId: 'r4',
+    sessionId: 's1',
+    userId: 'u1',
+    utterance: 'как выбрать хороший хостинг для голосового навыка',
+    isNewSession: false,
+    locale: 'ru-RU',
+    source: 'alice',
+    timestamp: new Date().toISOString(),
+    raw: {},
+  });
+
+  assert.equal(decision.routeType, 'askLLM');
+});
+
+test('routes gibberish to fallback', () => {
+  const decision = routeTurn({
+    requestId: 'r5',
+    sessionId: 's1',
+    userId: 'u1',
+    utterance: 'фывапролджэ',
+    isNewSession: false,
+    locale: 'ru-RU',
+    source: 'alice',
+    timestamp: new Date().toISOString(),
+    raw: {},
+  });
+
+  assert.equal(decision.routeType, 'fallback');
+});
