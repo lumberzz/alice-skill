@@ -91,22 +91,36 @@ If `OPENROUTER_API_KEY` is present and `LLM_API_URL` is empty, the app will auto
 
 ## Expected behavior after deploy
 ### Health check
-Render service root health endpoint:
+Render service health endpoint:
 
 ```text
 https://<your-render-service>.onrender.com/health
 ```
 
-Expected JSON shape:
+Readiness endpoint:
+
+```text
+https://<your-render-service>.onrender.com/ready
+```
+
+Expected useful fields now include:
 
 ```json
 {
   "ok": true,
   "service": "alice-skill",
   "llmProvider": "mock",
+  "llmMode": "mock",
+  "llmModel": "openai/gpt-5.4-mini",
+  "llmTimeoutMs": 6000,
+  "llmReady": true,
   "openclawTransport": "mock-rpc"
 }
 ```
+
+Notes:
+- `/health` shows process-level health and config mode.
+- `/ready` returns `503` when LLM mode is explicitly enabled but still misconfigured.
 
 ### Alice webhook URL
 Use this in Yandex Dialogs:

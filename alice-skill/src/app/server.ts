@@ -16,13 +16,13 @@ const dependencies = createDependencies();
 
 app.use(express.json({ limit: '1mb' }));
 
-app.get('/health', (_req, res) => {
+function buildHealthPayload() {
   const llmReady =
     dependencies.llmStatus.mode === 'mock'
       ? true
       : dependencies.llmStatus.mode === 'configured';
 
-  res.json({
+  return {
     ok: true,
     service: 'alice-skill',
     llmProvider: dependencies.config.LLM_PROVIDER,
@@ -31,6 +31,19 @@ app.get('/health', (_req, res) => {
     llmTimeoutMs: dependencies.llmStatus.timeoutMs,
     llmReady,
     openclawTransport: dependencies.config.OPENCLAW_TRANSPORT,
+  };
+}
+
+app.get('/health', (_req, res) => {
+  res.json(buildHealthPayload());
+});
+
+app.get('/ready', (_req, res) => {
+  const payload = buildHealthPayload();
+  const ready = payload.llmMode !== 'misconfigured';
+  res.status(ready ? 200 : 503).json({
+    ...payload,
+    ready,
   });
 });
 
