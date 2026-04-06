@@ -22,9 +22,20 @@ curl http://127.0.0.1:3000/health
 
 ## Start tunnel
 
+Default behavior of the helper script is now proxy-aware:
+- it prefers `http2`
+- it disables `HTTP_PROXY` / `HTTPS_PROXY` env vars for the tunnel process unless told otherwise
+
 ```bash
 cd /home/lumber/.openclaw/workspace/alice-skill
 PORT=3000 ./scripts/cloudflared-tunnel.sh
+```
+
+If you explicitly want to try through the current proxy environment:
+
+```bash
+cd /home/lumber/.openclaw/workspace/alice-skill
+CLOUDFLARED_DISABLE_PROXY=0 CLOUDFLARED_PROTOCOL=http2 PORT=3000 ./scripts/cloudflared-tunnel.sh
 ```
 
 Or combined app+tunnel run:
@@ -55,5 +66,9 @@ https://random-name.trycloudflare.com/alice/webhook
 5. Test in the Dialogs console
 6. Then test from a real Alice station
 
-## Note
-cloudflared is currently not installed in this environment, so these scripts are prepared but the tunnel itself still requires binary installation on the host.
+## Diagnostics note
+In the current environment, the local app starts correctly, but recent tunnel attempts showed network-level issues:
+- ngrok fails when proxy env is active because proxy support is a paid feature there
+- cloudflared can obtain a quick tunnel URL but fails to complete edge connectivity in the current network path
+
+See `TUNNEL_DIAGNOSTICS.md` for the latest concrete error signatures and interpretation.
