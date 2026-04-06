@@ -9,7 +9,7 @@ import type { RequestContext } from '../middleware/request-context.js';
 import type { SessionStore } from '../state/store.js';
 import { createEmptySessionState } from '../state/session-types.js';
 import { hasTimeBudget } from './policies.js';
-import type { LlmProvider } from '../services/llm/provider.js';
+import type { LlmProvider, LlmRuntimeStatus } from '../services/llm/provider.js';
 import { llmHandler } from '../handlers/llm/llm-handler.js';
 import type { OpenClawBridge } from '../services/openclaw/bridge.js';
 import { openclawHandler } from '../handlers/openclaw/openclaw-handler.js';
@@ -17,6 +17,7 @@ import { openclawHandler } from '../handlers/openclaw/openclaw-handler.js';
 export interface OrchestratorDependencies {
   sessionStore: SessionStore;
   llmProvider: LlmProvider;
+  llmStatus: LlmRuntimeStatus;
   openclawBridge: OpenClawBridge;
 }
 
@@ -43,7 +44,9 @@ export async function orchestrateTurn(
         response = capabilitiesHandler();
         break;
       case 'askLLM':
-        response = await llmHandler(context, deps.llmProvider, priorState);
+        response = deps.llmStatus.mode === 'misconfigured'
+          ? fallbackHandler('LLM-режим включён, но провайдер ещё не настроен. Добавь ключ и параметры модели в окружение сервиса.')
+          : await llmHandler(context, deps.llmProvider, priorState);
         break;
       case 'askOpenClaw':
         response = await openclawHandler(context, deps.openclawBridge, 'research');

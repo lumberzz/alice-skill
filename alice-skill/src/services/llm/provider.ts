@@ -12,3 +12,10 @@ export interface LlmGenerateOutput {
 export interface LlmProvider {
   generateSpokenAnswer(input: LlmGenerateInput): Promise<LlmGenerateOutput>;
 }
+
+export interface LlmRuntimeStatus {
+  mode: 'mock' | 'configured' | 'misconfigured';
+  apiUrl?: string;
+  model: string;
+  timeoutMs: number;
+}

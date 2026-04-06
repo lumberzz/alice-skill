@@ -23,6 +23,7 @@ test('orchestrator routes LLM requests', async () => {
     {
       sessionStore: new MemorySessionStore(),
       llmProvider: new MockLlmProvider(),
+      llmStatus: { mode: 'mock', model: 'mock-model', timeoutMs: 1000 },
       openclawBridge: new MockOpenClawBridge(),
     },
   );
@@ -48,6 +49,7 @@ test('orchestrator routes research requests to OpenClaw', async () => {
     {
       sessionStore: new MemorySessionStore(),
       llmProvider: new MockLlmProvider(),
+      llmStatus: { mode: 'mock', model: 'mock-model', timeoutMs: 1000 },
       openclawBridge: new MockOpenClawBridge(),
     },
   );

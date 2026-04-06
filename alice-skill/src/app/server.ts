@@ -50,6 +50,7 @@ app.post('/alice/webhook', async (req, res) => {
     const response = await orchestrateTurn(context, {
       sessionStore,
       llmProvider: dependencies.llmProvider,
+      llmStatus: dependencies.llmStatus,
       openclawBridge: dependencies.openclawBridge,
     });
 

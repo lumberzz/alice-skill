@@ -1,5 +1,5 @@
 import path from 'node:path';
-import type { LlmProvider } from '../services/llm/provider.js';
+import type { LlmProvider, LlmRuntimeStatus } from '../services/llm/provider.js';
 import { MockLlmProvider } from '../services/llm/mock-provider.js';
 import { OpenAiCompatibleProvider } from '../services/llm/openai-compatible-provider.js';
 import type { OpenClawBridge } from '../services/openclaw/bridge.js';
@@ -15,12 +15,7 @@ export interface AppDependencies {
   config: ReturnType<typeof loadConfig>;
   llmProvider: LlmProvider;
   openclawBridge: OpenClawBridge;
-  llmStatus: {
-    mode: 'mock' | 'configured' | 'misconfigured';
-    apiUrl?: string;
-    model: string;
-    timeoutMs: number;
-  };
+  llmStatus: LlmRuntimeStatus;
 }
 
 function buildOpenClawEnv(config: ReturnType<typeof loadConfig>): NodeJS.ProcessEnv {
@@ -54,7 +49,7 @@ export function createDependencies(): AppDependencies {
         })
       : new MockLlmProvider();
 
-  const llmStatus = {
+  const llmStatus: LlmRuntimeStatus = {
     mode:
       config.LLM_PROVIDER === 'mock'
         ? 'mock'
