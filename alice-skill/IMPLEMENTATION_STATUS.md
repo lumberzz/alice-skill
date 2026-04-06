@@ -16,6 +16,11 @@
 2. Finalize README and helper scripts around the chosen default path.
 3. Clean up transient diagnostics and create milestone commits.
 
+## Deployment direction decided
+- First real external Alice test should use local run + cloudflared.
+- Render Free is not the preferred primary path because idle spin-down and cold starts are a poor fit for Alice webhook UX.
+- Hosted deployment can be revisited later after choosing a production transport strategy.
+
 ## Definition of first testable working version
 - Alice webhook starts locally.
 - askLLM route works.
